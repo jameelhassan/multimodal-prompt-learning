@@ -109,6 +109,11 @@ def extend_cfg(cfg):
     cfg.TRAINER.MAPLE.PROMPT_DEPTH = 9 # Max 12, minimum 0, for 1 it will act as shallow MaPLe (J=1)
     cfg.DATASET.SUBSAMPLE_CLASSES = "all"  # all, base or new
 
+    # TPT args
+    cfg.TRAINER.TPT_LOADER = True   # Use TPT Dataloader. (Just for sanity check)
+    cfg.TRAINER.TPT_RUN = False  # Run TPT using TPT dataloader
+    cfg.TRAINER.TPT_DATASET = 'I'   # Dataset
+
     # Config for independent Vision Language prompting (independent-vlp)
     cfg.TRAINER.IVLP = CN()
     cfg.TRAINER.IVLP.N_CTX_VISION = 2  # number of context vectors at the vision branch
@@ -167,7 +172,7 @@ def main(args):
     print("** System info **\n{}\n".format(collect_env_info()))
 
     trainer = build_trainer(cfg)
-
+    trainer.test_loader = trainer.tpt_loader if args.tpt else trainer.test_loader
     if args.eval_only:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
         trainer.test()
@@ -221,6 +226,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--load-epoch", type=int, help="load model weights at this epoch for evaluation"
     )
+    parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
     parser.add_argument(
         "--no-train", action="store_true", help="do not call trainer.train()"
     )

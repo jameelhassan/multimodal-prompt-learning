@@ -1,0 +1,7 @@
+data
+output
+weights
+trainers/__pycache__
+datasets/__pycache__
+clip/__pycache__
+.vscode
