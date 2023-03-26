@@ -110,9 +110,12 @@ def extend_cfg(cfg):
     cfg.DATASET.SUBSAMPLE_CLASSES = "all"  # all, base or new
 
     # TPT args
-    cfg.TRAINER.TPT_LOADER = True   # Use TPT Dataloader. (Just for sanity check)
-    cfg.TRAINER.TPT_RUN = False  # Run TPT using TPT dataloader
-    cfg.TRAINER.TPT_DATASET = 'I'   # Dataset
+    cfg.TPT = CN()
+    cfg.TPT.LOADER = True   # Use TPT Dataloader. (Just for sanity check)
+    cfg.TPT.RUN = False  # Run TPT using TPT dataloader
+    cfg.TPT.DATASET = 'A'   # Dataset
+    cfg.TPT.LR = 5e-3   # Learning rate for TPT
+    cfg.TPT.COCOOP = False
 
     # Config for independent Vision Language prompting (independent-vlp)
     cfg.TRAINER.IVLP = CN()
@@ -172,10 +175,22 @@ def main(args):
     print("** System info **\n{}\n".format(collect_env_info()))
 
     trainer = build_trainer(cfg)
-    trainer.test_loader = trainer.tpt_loader if args.tpt else trainer.test_loader
+    trainer.test_loader = trainer.tpt_loader if cfg.TPT.LOADER else trainer.test_loader
     if args.eval_only:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
         trainer.test()
+        return
+    elif args.tpt:
+        trainer.load_model(args.model_dir, epoch=args.load_epoch)
+        results = trainer.tpt()   # Perform TPT and inference
+        print()
+        print("\t\t [set_id] \t\t Top-1 acc. \t\t Top-5 acc.")
+        for id in results.keys():
+            print("{}".format(id), end="	")
+        print("\n")
+        for id in results.keys():
+            print("{:.2f}".format(results[id][0]), end="	")
+        print("\n")
         return
 
     if not args.no_train:
