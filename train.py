@@ -112,7 +112,7 @@ def extend_cfg(cfg):
     # TPT args
     cfg.TPT = CN()
     cfg.TPT.LOADER = True   # Use TPT Dataloader. (Just for sanity check)
-    cfg.TPT.RUN = False  # Run TPT using TPT dataloader
+    cfg.TPT.RUN = True  # Run TPT using TPT dataloader
     cfg.TPT.DATASET = 'A'   # Dataset
     cfg.TPT.LR = 5e-3   # Learning rate for TPT
     cfg.TPT.COCOOP = False

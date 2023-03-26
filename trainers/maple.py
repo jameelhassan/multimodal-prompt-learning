@@ -70,6 +70,7 @@ class TextEncoder(nn.Module):
 class MultiModalPromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
+        self.learned_cls = False  # Just copied, check if setting to True
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.MAPLE.N_CTX
         ctx_init = cfg.TRAINER.MAPLE.CTX_INIT
@@ -102,7 +103,7 @@ class MultiModalPromptLearner(nn.Module):
         # These below, related to the shallow prompts
         # Linear layer so that the tokens will project to 512 and will be initialized from 768
         self.proj = nn.Linear(ctx_dim, 768)
-        self.proj.half()
+        # self.proj.half()
         self.ctx = nn.Parameter(ctx_vectors)
         self.proj_weight_init_state = self.proj.weight.detach().clone()
         self.proj_bias_init_state = self.proj.bias.detach().clone()
