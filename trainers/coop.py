@@ -11,10 +11,11 @@ from dassl.utils import load_pretrained_weights, load_checkpoint
 from dassl.optim import build_optimizer, build_lr_scheduler
 
 from clip import clip
+from clip import load, tokenize
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
-
+DOWNLOAD_ROOT='~/.cache/clip'
 
 def load_clip_to_cpu(cfg):
     backbone_name = cfg.MODEL.BACKBONE.NAME
@@ -63,6 +64,7 @@ class TextEncoder(nn.Module):
 class PromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
+        self.learned_cls = False
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COOP.N_CTX
         ctx_init = cfg.TRAINER.COOP.CTX_INIT
@@ -183,6 +185,46 @@ class PromptLearner(nn.Module):
             raise ValueError
 
         return prompts
+    
+    def reset(self):
+        ctx_vectors = self.ctx_init_state
+        self.ctx.copy_(ctx_vectors) # to be optimized
+        if self.learned_cls:
+            cls_vectors = self.cls_init_state
+            self.cls.copy_(cls_vectors)
+
+    def reset_classnames(self, classnames, arch):
+        self.n_cls = len(classnames)
+        if not self.learned_cls:
+            classnames = [name.replace("_", " ") for name in classnames]
+            name_lens = [len(_tokenizer.encode(name)) for name in classnames]
+            prompts = [self.prompt_prefix + " " + name + "." for name in classnames]
+        else:
+            cls_vectors = torch.empty(self.n_cls, 1, self.ctx_dim, dtype=self.dtype) # assume each learnable cls_token is only 1 word
+            nn.init.normal_(cls_vectors, std=0.02)
+            cls_token = "X"
+            name_lens = [1 for _ in classnames]
+            prompts = [self.prompt_prefix + " " + cls_token + "." for _ in classnames]
+            # TODO: re-init the cls parameters
+            # self.cls = nn.Parameter(cls_vectors) # to be optimized
+            self.cls_init_state = cls_vectors.detach().clone()
+        tokenized_prompts = torch.cat([tokenize(p) for p in prompts]).to(self.device)
+
+        clip, _, _ = load(arch, device=self.device, download_root=DOWNLOAD_ROOT)
+
+        with torch.no_grad():
+            embedding = clip.token_embedding(tokenized_prompts).type(self.dtype)
+
+        self.token_prefix = embedding[:, :1, :]
+        self.token_suffix = embedding[:, 1 + self.n_ctx :, :]  # CLS, EOS
+
+        self.name_lens = name_lens
+        self.tokenized_prompts = tokenized_prompts      # Tokenized X X X X CLS
+        self.classnames = classnames
+
+    def set_prompt_init_states(self):
+        ctx_vectors = self.ctx.detach().clone()
+        self.ctx_init_state = ctx_vectors
 
 
 class CustomCLIP(nn.Module):
@@ -209,6 +251,17 @@ class CustomCLIP(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
+    
+    # restore the initial state of the prompt_learner (tunable prompt)
+    def reset(self):
+        self.prompt_learner.reset()
+
+    def reset_classnames(self, classnames, arch):
+        self.prompt_learner.reset_classnames(classnames, arch)
+
+    def set_prompt_inits(self):
+        print("Re-updating prompt initializations to current prompts.")
+        self.prompt_learner.set_prompt_init_states()
 
 
 @TRAINER_REGISTRY.register()

@@ -108,12 +108,12 @@ def extend_cfg(cfg):
     cfg.TRAINER.MAPLE.PREC = "fp16"  # fp16, fp32, amp
     cfg.TRAINER.MAPLE.PROMPT_DEPTH = 9 # Max 12, minimum 0, for 1 it will act as shallow MaPLe (J=1)
     cfg.DATASET.SUBSAMPLE_CLASSES = "all"  # all, base or new
+    cfg.DATASET.TPT = 'I'
 
     # TPT args
     cfg.TPT = CN()
-    cfg.TPT.LOADER = True   # Use TPT Dataloader. (Just for sanity check)
-    cfg.TPT.RUN = True  # Run TPT using TPT dataloader
-    cfg.TPT.DATASET = 'A'   # Dataset
+    cfg.TPT.LOADER = False   # Use TPT Dataloader. (Just for sanity check)
+    cfg.TPT.RUN = False  # Run TPT using TPT dataloader
     cfg.TPT.LR = 5e-3   # Learning rate for TPT
     cfg.TPT.COCOOP = False
 
@@ -174,6 +174,7 @@ def main(args):
     print("Collecting env info ...")
     print("** System info **\n{}\n".format(collect_env_info()))
 
+    assert args.tpt == cfg.TPT.RUN, "TPT flag in args and config mismatch"
     trainer = build_trainer(cfg)
     trainer.test_loader = trainer.tpt_loader if cfg.TPT.LOADER else trainer.test_loader
     if args.eval_only:
