@@ -180,6 +180,8 @@ def main(args):
     if args.eval_only:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
         trainer.test()
+        ## Save the tensors of feature maps here
+        trainer.save_feature_maps('./output/features')
         return
     elif args.tpt:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)

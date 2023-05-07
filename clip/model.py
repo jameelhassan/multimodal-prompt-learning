@@ -6,6 +6,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+# text_means = torch.load('output/features/text_feats_means.pt')
+# visual_means = torch.load('output/features/visual_feats_means.pt')
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -279,6 +281,9 @@ class ResidualAttentionBlock_MaPLe(nn.Module):
             self.first_layer = True
         else:
             self.first_layer = False
+        
+        # self.text_feature = torch.empty(0)
+        # self.visual_feature = torch.empty(0)
 
     def attention(self, x: torch.Tensor):
         self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
@@ -326,6 +331,24 @@ class ResidualAttentionBlock_MaPLe(nn.Module):
                         x = torch.cat([prefix, textual_context, suffix], dim=0)
                         # Once done, update the counter, so that the next time, it does not use same learnable tokens
                         counter += 1
+        
+        # Store mean and variances
+        if not self.text_layer:
+            self.visual_mean = torch.mean(x, dim=1, keepdims=True)
+            self.visual_var = torch.mean((x - self.visual_mean)**2, dim=1, keepdims=True)
+
+        # # Store variances
+        # if self.text_layer:
+        #     self.text_feature = torch.sum(torch.cat([self.text_feature.to(x.device), torch.sum((x - text_means[counter].unsqueeze(0).permute(1,0,2))**2, dim=1, keepdims=True)], dim=1), dim=1, keepdim=True)
+        # else:
+        #     self.visual_feature = torch.sum(torch.cat([self.visual_feature.to(x.device), torch.sum((x - visual_means[counter].unsqueeze(0).permute(1,0,2))**2, dim=1, keepdims=True)], dim=1), dim=1, keepdim=True)
+        
+        # # Store the visual and text features for each transformer block for means
+        # if self.text_layer:
+        #     self.text_feature = torch.sum(torch.cat([self.text_feature.to(x.device), torch.sum(x, dim=1, keepdims=True)], dim=1), dim=1, keepdim=True)
+        # else:
+        #     self.visual_feature = torch.sum(torch.cat([self.visual_feature.to(x.device), torch.sum(x, dim=1, keepdims=True)], dim=1), dim=1, keepdim=True)
+
         x = x + self.attention(self.ln_1(x))
         x = x + self.mlp(self.ln_2(x))
         return [x, compound_prompts_deeper, counter]  # return again as a list, so that nn.seq can work

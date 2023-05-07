@@ -289,6 +289,24 @@ def _get_clones(module, N):
 
 @TRAINER_REGISTRY.register()
 class MaPLe(TrainerX):
+    def save_feature_maps(self, save_path='./output/features/'):
+        '''
+        Saving feature maps (i.e. tokens from transformer)
+        '''
+        import os
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        print("******Saving feature maps to {}*********".format(save_path))
+        visual_feats = torch.cat([res.visual_feature.permute(1, 0, 2) for res in self.model.image_encoder.transformer.resblocks])
+        text_feats = torch.cat([res.text_feature.permute(1, 0, 2) for res in self.model.text_encoder.transformer.resblocks])
+        visual_feats = visual_feats / len(self.test_loader.dataset)
+        text_feats = text_feats / len(self.test_loader.dataset)
+        print("visual_feats.shape: ", visual_feats.shape)
+        print("text_feats.shape: ", text_feats.shape)
+        torch.save(visual_feats, os.path.join(save_path, "visual_feats_vars.pt"))
+        torch.save(text_feats, os.path.join(save_path, "text_feats_vars.pt"))
+
     def check_cfg(self, cfg):
         assert cfg.TRAINER.MAPLE.PREC in ["fp16", "fp32", "amp"]
 

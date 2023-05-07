@@ -18,7 +18,7 @@ class ImageNetSketch(DatasetBase):
     def __init__(self, cfg):
         root = os.path.abspath(os.path.expanduser(cfg.DATASET.ROOT))
         self.dataset_dir = os.path.join(root, self.dataset_dir)
-        self.image_dir = os.path.join(self.dataset_dir, "images")
+        self.image_dir = os.path.join(self.dataset_dir, "ImageNet-Sketch")
 
         text_file = os.path.join(self.dataset_dir, "classnames.txt")
         classnames = ImageNet.read_classnames(text_file)

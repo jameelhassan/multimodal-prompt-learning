@@ -3,7 +3,7 @@ DATALOADER:
     BATCH_SIZE: 4
   TEST:
     BATCH_SIZE: 100
-  NUM_WORKERS: 8
+  NUM_WORKERS: 12
 
 INPUT:
   SIZE: (224, 224)
@@ -37,5 +37,5 @@ TRAINER:
 
 TPT:
   LOADER: True
-  LR: 5e-3
+  LR: 5e-4
   RUN: True

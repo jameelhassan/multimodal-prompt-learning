@@ -3,20 +3,20 @@
 #cd ../..
 
 # custom config
-DATA="./data"
+DATA="./data/"
 TRAINER=MaPLe
 
 DATASET=$1
 SEED=$2
-WEIGHTSPATH=$3
+WEIGHTSPATH='weights/maple/ori'
 
-CFG=vit_b16_c2_ep5_batch4_2ctx_cross_datasets
+CFG=tpt_vit_b16_c2_ep5_batch4_2ctx_cross_datasets
 SHOTS=16
 LOADEP=2
 
 MODEL_DIR=${WEIGHTSPATH}/seed${SEED}
 
-DIR=output/evaluation/${TRAINER}/${CFG}_${SHOTS}shots/${DATASET}/seed${SEED}
+DIR=output/evaluation/${TRAINER}/DistrEntr_${CFG}_${SHOTS}shots/${DATASET}/seed${SEED}
 if [ -d "$DIR" ]; then
     echo "Results are already available in ${DIR}. Skipping..."
 else
@@ -32,7 +32,7 @@ else
     --output-dir ${DIR} \
     --model-dir ${MODEL_DIR} \
     --load-epoch ${LOADEP} \
-    --eval-only \
+    --tpt \
     DATASET.NUM_SHOTS ${SHOTS} \
 
 fi
