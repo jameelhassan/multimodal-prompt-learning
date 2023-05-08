@@ -177,14 +177,15 @@ def main(args):
     print("Collecting env info ...")
     print("** System info **\n{}\n".format(collect_env_info()))
 
-    assert args.tpt == cfg.TPT.RUN, "TPT flag in args and config mismatch"
+    if args.tpt:
+        assert args.tpt == cfg.TPT.RUN, "TPT flag in args and config mismatch"
     trainer = build_trainer(cfg)
     trainer.test_loader = trainer.tpt_loader if cfg.TPT.LOADER else trainer.test_loader
     if args.eval_only:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
         trainer.test()
         ## Save the tensors of feature maps here
-        trainer.save_feature_maps('./output/features')
+        # trainer.save_feature_maps('./output/features')
         return
     elif args.tpt:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
