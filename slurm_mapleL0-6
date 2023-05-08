@@ -12,7 +12,6 @@
 
 DATASET='imagenet_a'
 SEED=1
-CUSTOM_NAME=$1
 
 hostname
-sh scripts/tpt/maple_bothloss.sh ${DATASET} ${SEED} ${CUSTOM_NAME}
+sh scripts/tpt/L0-3maple_bothloss.sh ${DATASET} ${SEED} all_L0-3_5e-2

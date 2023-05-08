@@ -8,6 +8,7 @@ TRAINER=MaPLe
 
 DATASET=$1
 SEED=$2
+CUSTOM_NAME=$3
 WEIGHTSPATH='weights/maple/ori'
 
 CFG=tpt_vit_b16_c2_ep5_batch4_2ctx_cross_datasets
@@ -16,7 +17,7 @@ LOADEP=2
 
 MODEL_DIR=${WEIGHTSPATH}/seed${SEED}
 
-DIR=output/evaluation/${TRAINER}/DistrEntr_${CFG}_${SHOTS}shots/${DATASET}/seed${SEED}
+DIR=output/evaluation/${TRAINER}/DistrEntr_${CFG}_${SHOTS}shots/${DATASET}/seed${SEED}_${CUSTOM_NAME}
 if [ -d "$DIR" ]; then
     echo "Results are already available in ${DIR}. Skipping..."
 else

@@ -116,6 +116,9 @@ def extend_cfg(cfg):
     cfg.TPT.RUN = False  # Run TPT using TPT dataloader
     cfg.TPT.LR = 5e-3   # Learning rate for TPT
     cfg.TPT.COCOOP = False
+    cfg.TPT.ALIGN_LAYER_FROM = 0
+    cfg.TPT.ALIGN_LAYER_TO = 6
+    cfg.TPT.TTA_STEPS = 1
 
     # Config for independent Vision Language prompting (independent-vlp)
     cfg.TRAINER.IVLP = CN()
