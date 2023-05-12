@@ -283,7 +283,7 @@ class ResidualAttentionBlock_MaPLe(nn.Module):
             self.first_layer = False
         
         # self.text_feature = torch.empty(0)
-        # self.visual_feature = torch.empty(0)
+        # self.visual_feat = torch.empty(0)
 
     def attention(self, x: torch.Tensor):
         self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
@@ -334,8 +334,9 @@ class ResidualAttentionBlock_MaPLe(nn.Module):
         
         # Store mean and variances
         if not self.text_layer:
-            self.visual_mean = torch.mean(x, dim=1, keepdims=True)
-            self.visual_var = torch.mean((x - self.visual_mean)**2, dim=1, keepdims=True)
+            self.visual_feat = x
+            # self.visual_mean = torch.mean(x, dim=1, keepdims=True)
+            # self.visual_var = torch.mean((x - self.visual_mean)**2, dim=1, keepdims=True)
 
         # # Store variances
         # if self.text_layer:

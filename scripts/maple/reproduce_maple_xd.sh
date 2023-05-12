@@ -3,12 +3,12 @@
 #cd ../..
 
 # custom config
-DATA="./data"
+DATA="/l/users/uzair.khattak/coop/do_not_use/"
 TRAINER=MaPLe
 
 DATASET=$1
 SEED=$2
-WEIGHTSPATH=$3
+WEIGHTSPATH='weights/maple/ori'
 
 CFG=vit_b16_c2_ep5_batch4_2ctx_cross_datasets
 SHOTS=16

@@ -3,7 +3,7 @@
 #cd ../..
 
 # custom config
-DATA="./data"
+DATA="/l/users/uzair.khattak/coop/do_not_use/"
 TRAINER=MaPLe
 
 DATASET=$1

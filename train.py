@@ -119,6 +119,12 @@ def extend_cfg(cfg):
     cfg.TPT.ALIGN_LAYER_FROM = 0
     cfg.TPT.ALIGN_LAYER_TO = 6
     cfg.TPT.TTA_STEPS = 1
+    cfg.TPT.DISTR_ALIGN = False
+    cfg.TPT.TPT_THRESHOLD = 0.1
+    cfg.TPT.ALIGN_THRESHOLD = 1.0
+    cfg.TPT.TPT_LOSS = True
+    cfg.TPT.DISTR_LOSS_W = 20
+    cfg.TPT.ZS_LOSS = False
 
     # Config for independent Vision Language prompting (independent-vlp)
     cfg.TRAINER.IVLP = CN()

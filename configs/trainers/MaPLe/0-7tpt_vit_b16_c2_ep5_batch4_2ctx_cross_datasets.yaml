@@ -37,7 +37,7 @@ TRAINER:
 
 TPT:
   LOADER: True
-  LR: 5e-2
+  LR: 4e-2
   RUN: True
   ALIGN_LAYER_FROM: 0
   ALIGN_LAYER_TO: 7

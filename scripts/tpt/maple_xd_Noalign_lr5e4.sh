@@ -11,7 +11,7 @@ SEED=$2
 CUSTOM_NAME=$3
 WEIGHTSPATH='weights/maple/ori'
 
-CFG=LR4e2_align_tpt_vit_b16_c2_ep5_batch4_2ctx_cross_datasets
+CFG=LR5e4_Noalign_tpt_vit_b16_c2_ep5_batch4_2ctx_cross_datasets
 SHOTS=16
 LOADEP=2
 

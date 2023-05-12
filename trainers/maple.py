@@ -40,6 +40,27 @@ def load_clip_to_cpu(cfg):
 
     return model
 
+def load_clip_to_cpu_dummy(cfg):
+    backbone_name = cfg.MODEL.BACKBONE.NAME
+    url = clip._MODELS[backbone_name]
+    model_path = clip._download(url)
+
+    try:
+        # loading JIT archive
+        model = torch.jit.load(model_path, map_location="cpu").eval()
+        state_dict = None
+
+    except RuntimeError:
+        state_dict = torch.load(model_path, map_location="cpu")
+    design_details = {"trainer": 'IVLP',
+                      "vision_depth": 0,
+                      "language_depth": 0, 
+                      "vision_ctx": 0,
+                      "language_ctx": 0}
+    model = clip.build_model(state_dict or model.state_dict(), design_details)
+
+    return model
+
 
 class TextEncoder(nn.Module):
     def __init__(self, clip_model):
@@ -139,6 +160,19 @@ class MultiModalPromptLearner(nn.Module):
         # those computed using the current class names
         self.register_buffer("token_prefix", embedding[:, :1, :])  # SOS
         self.register_buffer("token_suffix", embedding[:, 1 + n_ctx:, :])  # CLS, EOS
+
+        # Also create original CLIP text embeddings
+        clip_model_temp = load_clip_to_cpu_dummy(cfg).float().cuda()
+        all_teacher_features = []
+        with torch.no_grad():
+            for single_template in ["a photo of a"]:
+                x = [single_template.replace("{}", name) for name in classnames]
+                x_tokenized = torch.cat([clip.tokenize(p) for p in x])
+                text_features = clip_model_temp.encode_text(x_tokenized.cuda())
+                all_teacher_features.append(text_features.unsqueeze(1))
+
+        self.fixed_embeddings = torch.cat(all_teacher_features, dim=1).mean(dim=1)
+        del clip_model_temp
 
         self.n_cls = n_cls
         self.n_ctx = n_ctx
@@ -269,6 +303,15 @@ class CustomCLIP(nn.Module):
             return F.cross_entropy(logits, label)
 
         return logits
+
+    def get_text_features(self):
+        with torch.no_grad():
+            tokenized_prompts = self.tokenized_prompts
+
+            prompts, shared_ctx, deep_compound_prompts_text, deep_compound_prompts_vision = self.prompt_learner()
+            text_features = self.text_encoder(prompts, tokenized_prompts, deep_compound_prompts_text)
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        return text_features
     
     # restore the initial state of the prompt_learner (tunable prompt)
     def reset(self):
